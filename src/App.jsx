@@ -85,37 +85,37 @@ function formatDueDate(dueDateStr) {
 
 function getDueDateBadgeText(task) {
   if (!task.dueDate) return '';
-  
+
   const state = getDueDateState(task);
   if (task.status === 'done') {
     return `Done (${formatDueDate(task.dueDate)})`;
   }
-  
+
   const formatted = formatDueDate(task.dueDate);
   if (state === 'overdue') {
     return `Overdue (${formatted})`;
   }
-  
+
   const now = new Date();
   const todayStr = now.toISOString().split('T')[0];
-  
+
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
-  
+
   if (task.dueDate === todayStr) {
     return `Today (${formatted})`;
   } else if (task.dueDate === tomorrowStr) {
     return `Tomorrow (${formatted})`;
   }
-  
+
   return formatted;
 }
 
 function getDueDateCardStyles(task) {
   const state = getDueDateState(task);
   if (!state) return 'bg-white border-slate-200';
-  
+
   switch (state) {
     case 'safe':
       return 'bg-due-safe/10 border-due-safe/30';
@@ -133,7 +133,7 @@ function getDueDateCardStyles(task) {
 function getDueDateBadgeStyles(task) {
   const state = getDueDateState(task);
   if (!state) return 'bg-slate-100 border-slate-200 text-slate-600';
-  
+
   switch (state) {
     case 'safe':
       return 'bg-due-safe border-due-safe text-slate-900 font-bold shadow-sm';
@@ -269,21 +269,50 @@ function BugIcon({ className = "w-4 h-4" }) {
   );
 }
 
+function timeAgo(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInSeconds = Math.floor((now - date) / 1000);
+
+  if (diffInSeconds < 60) return 'just now';
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  if (diffInMinutes < 60) return `${diffInMinutes} m ago`;
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours} h ago`;
+  const diffInDays = Math.floor(diffInHours / 24);
+  return `${diffInDays} d ago`;
+}
+
 function TaskModal({ task, onSave, onClose, onDelete }) {
-  const [formData, setFormData] = useState(task || {
-    id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15),
-    title: '',
-    description: '',
-    type: 'feature',
-    status: 'todo',
-    assignee: TEAM[0],
-    dueDate: '',
-    createdDate: new Date().toISOString().split('T')[0],
+  const [formData, setFormData] = useState(() => {
+    if (task) return { ...task };
+    return {
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15),
+      title: '',
+      description: '',
+      type: 'feature',
+      status: 'todo',
+      assignee: TEAM[0],
+      dueDate: '',
+      createdDate: new Date().toISOString().split('T')[0],
+      context: 'Background:\n\nConstraints:\n\nTried so far:\n\nPick up:\n',
+      contextTool: '',
+      contextUpdatedAt: null,
+    };
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleContextChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      context: e.target.value,
+      contextUpdatedAt: new Date().toISOString()
+    }));
   };
 
   const isFeature = formData.type === 'feature';
@@ -348,6 +377,42 @@ function TaskModal({ task, onSave, onClose, onDelete }) {
               <input type="date" name="dueDate" value={formData.dueDate || ''} onChange={handleChange} className={`w-full border border-slate-300 rounded p-2 focus:outline-none ${ringClass}`} />
             </div>
           </div>
+
+          {/* Context Section */}
+          <div className="border-t border-slate-200 pt-4 mt-2">
+            <div className="flex justify-between items-baseline mb-1">
+              <label className="block text-sm font-medium text-slate-700">Context</label>
+              {formData.contextUpdatedAt && (
+                <span className="text-xs text-slate-400">
+                  last updated {timeAgo(formData.contextUpdatedAt)}
+                </span>
+              )}
+            </div>
+            <textarea
+              name="context"
+              value={formData.context || ''}
+              onChange={handleContextChange}
+              className={`w-full border border-slate-300 rounded p-2 focus:outline-none h-32 font-mono text-sm ${ringClass}`}
+              placeholder="Background / Constraints / Tried so far / Pick up"
+            />
+            <div className="mt-2 flex items-center gap-2">
+              <label className="text-xs font-medium text-slate-500">AI Tool:</label>
+              <select
+                name="contextTool"
+                value={formData.contextTool || ''}
+                onChange={handleChange}
+                className={`text-xs border border-slate-300 rounded p-1 focus:outline-none ${ringClass}`}
+              >
+                <option value="">None selected</option>
+                <option value="Claude">Claude</option>
+                <option value="ChatGPT">ChatGPT</option>
+                <option value="Cursor">Cursor</option>
+                <option value="Lovable">Lovable</option>
+                <option value="Replit">Replit</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="p-4 border-t border-slate-200 flex justify-end gap-2">
@@ -368,7 +433,7 @@ export default function App() {
   const [tasks, setTasks] = useLocalStorage('vibetracker.tasks', SEED_TASKS);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  
+
   // Auto-refresh hook to ensure due-date tags color and texts update automatically in real-time
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -482,25 +547,24 @@ export default function App() {
                     {task.description && (
                       <p className="text-xs text-slate-500 line-clamp-2">{task.description}</p>
                     )}
-                    
+
                     {task.dueDate && (
                       <div className="flex items-center">
                         <span
                           style={{
                             backgroundColor: dueDateState === 'safe' ? themeColors['due-safe'] :
-                                             dueDateState === 'warning' ? themeColors['due-warning'] :
-                                             dueDateState === 'overdue' ? themeColors['due-overdue'] :
-                                             dueDateState === 'neutral' ? themeColors['due-neutral'] : '#f1f5f9',
+                              dueDateState === 'warning' ? themeColors['due-warning'] :
+                                dueDateState === 'overdue' ? themeColors['due-overdue'] :
+                                  dueDateState === 'neutral' ? themeColors['due-neutral'] : '#f1f5f9',
                             color: dueDateState === 'overdue' ? '#7f1d1d' :
-                                   dueDateState === 'neutral' ? '#ffffff' : '#101415',
+                              dueDateState === 'neutral' ? '#ffffff' : '#101415',
                             borderColor: dueDateState === 'safe' ? themeColors['due-safe'] :
-                                         dueDateState === 'warning' ? themeColors['due-warning'] :
-                                         dueDateState === 'overdue' ? themeColors['due-overdue'] :
-                                         dueDateState === 'neutral' ? themeColors['due-neutral'] : '#e2e8f0',
+                              dueDateState === 'warning' ? themeColors['due-warning'] :
+                                dueDateState === 'overdue' ? themeColors['due-overdue'] :
+                                  dueDateState === 'neutral' ? themeColors['due-neutral'] : '#e2e8f0',
                           }}
-                          className={`text-[10px] font-extrabold px-2 py-0.5 rounded border flex items-center shadow-sm ${
-                            dueDateState === 'overdue' ? 'animate-pulse shadow-md' : ''
-                          }`}
+                          className={`text-[10px] font-extrabold px-2 py-0.5 rounded border flex items-center shadow-sm ${dueDateState === 'overdue' ? 'animate-pulse shadow-md' : ''
+                            }`}
                         >
                           <DueIcon state={dueDateState} />
                           {badgeText}
@@ -527,8 +591,8 @@ export default function App() {
                       </div>
                       <span
                         className={`text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded border ${isFeature
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                            : 'bg-red-50 border-red-200 text-red-700'
+                          ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                          : 'bg-red-50 border-red-200 text-red-700'
                           }`}
                       >
                         {task.type}
