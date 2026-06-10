@@ -302,6 +302,29 @@ function TaskModal({ task, onSave, onClose, onDelete }) {
     };
   });
 
+  const [modalCopied, setModalCopied] = useState(false);
+
+  const handleModalCopyContext = () => {
+    const title = formData.title || 'Untitled Task';
+    const description = formData.description || 'No description provided.';
+    const context = formData.context || 'No context provided.';
+
+    const text = `# Task Briefing: ${title}
+
+## Description
+${description}
+
+## Context
+${context}`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      setModalCopied(true);
+      setTimeout(() => {
+        setModalCopied(false);
+      }, 2000);
+    });
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -380,8 +403,36 @@ function TaskModal({ task, onSave, onClose, onDelete }) {
 
           {/* Context Section */}
           <div className="border-t border-slate-200 pt-4 mt-2">
-            <div className="flex justify-between items-baseline mb-1">
-              <label className="block text-sm font-medium text-slate-700">Context</label>
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center gap-2">
+                <label className="block text-sm font-medium text-slate-700">Context</label>
+                <button
+                  type="button"
+                  onClick={handleModalCopyContext}
+                  className={`text-xs font-bold px-2 py-0.5 rounded transition-all duration-200 flex items-center gap-1 border ${
+                    modalCopied
+                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
+                      : 'text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 border-slate-200'
+                  }`}
+                  title="Copy Context"
+                >
+                  {modalCopied ? (
+                    <>
+                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                      </svg>
+                      <span>Copy Context</span>
+                    </>
+                  )}
+                </button>
+              </div>
               {formData.contextUpdatedAt && (
                 <span className="text-xs text-slate-400">
                   last updated {timeAgo(formData.contextUpdatedAt)}
