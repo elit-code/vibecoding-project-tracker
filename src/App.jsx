@@ -395,7 +395,7 @@ function timeAgo(dateString) {
   return `${diffInDays} d ago`;
 }
 
-function TaskModal({ task, onSave, onClose, onDelete }) {
+function TaskModal({ task, onSave, onClose, onDelete, team }) {
   const [formData, setFormData] = useState(() => {
     if (task) return { ...task };
     return {
@@ -404,7 +404,7 @@ function TaskModal({ task, onSave, onClose, onDelete }) {
       description: '',
       type: 'feature',
       status: 'todo',
-      assignee: TEAM[0],
+      assignee: team && team.length > 0 ? team[0] : '',
       dueDate: '',
       createdDate: new Date().toISOString().split('T')[0],
       context: 'Background:\n\nConstraints:\n\nTried so far:\n\nPick up:\n',
@@ -501,7 +501,7 @@ ${context}`;
             <div className="flex-1">
               <label className="block text-sm font-medium text-slate-700 mb-1">Assignee</label>
               <select name="assignee" value={formData.assignee} onChange={handleChange} className={`w-full border border-slate-300 rounded p-2 focus:outline-none ${ringClass}`}>
-                {TEAM.map(member => (
+                {team.map(member => (
                   <option key={member} value={member}>{member}</option>
                 ))}
               </select>
@@ -589,7 +589,79 @@ ${context}`;
   );
 }
 
+function AddContributorModal({ onSave, onClose, team }) {
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setError('Name cannot be empty.');
+      return;
+    }
+    if (team.some(member => member.toLowerCase() === trimmed.toLowerCase())) {
+      setError('A contributor with this name already exists.');
+      return;
+    }
+    onSave(trimmed);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-sm flex flex-col overflow-hidden animate-scale-in">
+        <div className="h-1.5 w-full bg-blue-600 shrink-0" />
+        <div className="flex justify-between items-center p-4 border-b border-slate-200">
+          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+            Add Contributor
+          </h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                setError('');
+              }}
+              placeholder="e.g. Jane Doe"
+              className="w-full border border-slate-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
+              autoFocus
+            />
+            {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
+          </div>
+
+          <div className="flex justify-end gap-2 mt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors"
+            >
+              Add Contributor
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
+  const [team, setTeam] = useLocalStorage('vibetracker.team', TEAM);
+  const [isAddContributorOpen, setIsAddContributorOpen] = useState(false);
   // TODO M4 data-model:
   const [tasks, setTasks] = useLocalStorage('vibetracker.tasks', SEED_TASKS);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -698,10 +770,20 @@ export default function App() {
         <h2 className="text-xs uppercase tracking-wider font-extrabold text-slate-400 mb-3 font-mono">
           Contributors Overview
         </h2>
-        <div className="flex gap-4 overflow-x-auto pb-2">
-          {TEAM.map(member => (
+        <div className="flex gap-4 overflow-x-auto pb-2 items-center">
+          {team.map(member => (
             <ContributorCard key={member} member={member} tasks={tasks} />
           ))}
+          <button
+            onClick={() => setIsAddContributorOpen(true)}
+            className="flex items-center justify-center gap-2 bg-slate-50/50 hover:bg-slate-50 border-2 border-dashed border-slate-200 hover:border-slate-300 text-slate-500 hover:text-slate-700 p-3 rounded-xl min-w-[200px] h-[74px] transition-all duration-200 shadow-sm shrink-0"
+            title="Add Contributor"
+          >
+            <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            <span className="font-semibold text-sm">Add Contributor</span>
+          </button>
         </div>
       </div>
 
@@ -817,7 +899,7 @@ export default function App() {
                             className="text-xs border-0 bg-transparent text-slate-600 focus:ring-0 p-0 cursor-pointer outline-none font-medium hover:text-slate-800 truncate"
                             title="Hand off to..."
                           >
-                            {TEAM.map(member => (
+                            {team.map(member => (
                               <option key={member} value={member}>{member}</option>
                             ))}
                           </select>
@@ -845,6 +927,20 @@ export default function App() {
           onSave={handleSaveTask}
           onClose={handleCloseModal}
           onDelete={handleDeleteTask}
+          team={team}
+        />
+      )}
+
+      {isAddContributorOpen && (
+        <AddContributorModal
+          team={team}
+          onClose={() => setIsAddContributorOpen(false)}
+          onSave={(newMember) => {
+            if (!team.some(m => m.toLowerCase() === newMember.toLowerCase())) {
+              setTeam([...team, newMember]);
+            }
+            setIsAddContributorOpen(false);
+          }}
         />
       )}
     </div>
