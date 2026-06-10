@@ -55,6 +55,124 @@ function getInitials(name) {
   return parts[0].substring(0, 2).toUpperCase();
 }
 
+function getDueDateState(task) {
+  if (task.status === 'done') return 'neutral';
+  if (!task.dueDate) return null;
+
+  const now = new Date();
+  const due = new Date(task.dueDate + 'T23:59:59');
+  const diffTime = due.getTime() - now.getTime();
+  const diffHours = diffTime / (1000 * 60 * 60);
+
+  if (diffTime < 0) {
+    return 'overdue';
+  }
+  if (diffHours <= 24) {
+    return 'warning';
+  }
+  return 'safe';
+}
+
+function formatDueDate(dueDateStr) {
+  if (!dueDateStr) return '';
+  const date = new Date(dueDateStr + 'T00:00:00');
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function getDueDateBadgeText(task) {
+  if (!task.dueDate) return '';
+  
+  const state = getDueDateState(task);
+  if (task.status === 'done') {
+    return `Done (${formatDueDate(task.dueDate)})`;
+  }
+  
+  const formatted = formatDueDate(task.dueDate);
+  if (state === 'overdue') {
+    return `Overdue (${formatted})`;
+  }
+  
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  
+  if (task.dueDate === todayStr) {
+    return `Today (${formatted})`;
+  } else if (task.dueDate === tomorrowStr) {
+    return `Tomorrow (${formatted})`;
+  }
+  
+  return formatted;
+}
+
+function getDueDateCardStyles(task) {
+  const state = getDueDateState(task);
+  if (!state) return 'bg-white border-slate-200';
+  
+  switch (state) {
+    case 'safe':
+      return 'bg-due-safe/10 border-due-safe/30';
+    case 'warning':
+      return 'bg-due-warning/20 border-due-warning/40';
+    case 'overdue':
+      return 'bg-due-overdue/20 border-due-overdue/40';
+    case 'neutral':
+      return 'bg-due-neutral/10 border-due-neutral/30';
+    default:
+      return 'bg-white border-slate-200';
+  }
+}
+
+function getDueDateBadgeStyles(task) {
+  const state = getDueDateState(task);
+  if (!state) return '';
+  
+  switch (state) {
+    case 'safe':
+      return 'bg-due-safe border-due-safe/40 text-slate-800';
+    case 'warning':
+      return 'bg-due-warning border-due-warning/40 text-slate-800';
+    case 'overdue':
+      return 'bg-due-overdue border-due-overdue/40 text-red-950 font-bold animate-pulse';
+    case 'neutral':
+      return 'bg-due-neutral border-due-neutral/40 text-white';
+    default:
+      return '';
+  }
+}
+
+function DueIcon({ state }) {
+  if (state === 'overdue') {
+    return (
+      <svg className="w-3 h-3 mr-1 text-red-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+    );
+  }
+  if (state === 'warning') {
+    return (
+      <svg className="w-3 h-3 mr-1 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    );
+  }
+  if (state === 'neutral') {
+    return (
+      <svg className="w-3.5 h-3.5 mr-1 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="w-3 h-3 mr-1 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
 const SEED_TASKS = [
   {
     id: 't1',
@@ -331,12 +449,16 @@ export default function App() {
             <div className="flex-1 flex flex-col gap-3">
               {tasks.filter(t => t.status === stage.id).map(task => {
                 const isFeature = task.type === 'feature';
+                const dueDateState = getDueDateState(task);
+                const cardStyles = getDueDateCardStyles(task);
+                const badgeStyles = getDueDateBadgeStyles(task);
+                const badgeText = getDueDateBadgeText(task);
+
                 return (
                   <div
                     key={task.id}
                     onClick={() => handleOpenModal(task)}
-                    className={`bg-white p-3 rounded shadow-sm border border-slate-200 border-l-4 ${isFeature ? 'border-l-feature bg-emerald-50/10' : 'border-l-bug bg-red-50/10'
-                      } flex flex-col gap-2 cursor-pointer hover:shadow-md transition-shadow relative group`}
+                    className={`p-3 rounded shadow-sm border border-l-4 ${isFeature ? 'border-l-feature' : 'border-l-bug'} ${cardStyles} flex flex-col gap-2 cursor-pointer hover:shadow-md transition-shadow relative group`}
                   >
                     <div className="flex justify-between items-start gap-2">
                       <span className="font-medium text-slate-800 leading-tight">{task.title}</span>
@@ -347,6 +469,16 @@ export default function App() {
                     {task.description && (
                       <p className="text-xs text-slate-500 line-clamp-2">{task.description}</p>
                     )}
+                    
+                    {task.dueDate && (
+                      <div className="flex items-center">
+                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded border flex items-center ${badgeStyles}`}>
+                          <DueIcon state={dueDateState} />
+                          {badgeText}
+                        </span>
+                      </div>
+                    )}
+
                     <div className="flex justify-between items-end mt-1 gap-2">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold shrink-0" title={task.assignee}>
