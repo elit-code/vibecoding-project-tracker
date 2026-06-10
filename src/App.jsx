@@ -217,6 +217,126 @@ const SEED_TASKS = [
     assignee: 'Tom Troll',
     dueDate: null,
     createdDate: '2026-06-10',
+  },
+  {
+    id: 't_todo_1',
+    title: 'Integrate Vercel Analytics',
+    description: 'Setup usage tracking for presentation demo.',
+    type: 'feature',
+    status: 'todo',
+    assignee: 'Tom Troll',
+    dueDate: '2026-06-20',
+    createdDate: '2026-06-10',
+  },
+  {
+    id: 't_todo_2',
+    title: 'Refactor modal state',
+    description: 'Move TaskModal state to a separate reducer to clean up App.jsx.',
+    type: 'feature',
+    status: 'todo',
+    assignee: 'Elias Tanzer',
+    dueDate: '2026-06-18',
+    createdDate: '2026-06-10',
+  },
+  {
+    id: 't_todo_3',
+    title: 'Fix dragging glitch',
+    description: 'Card sometimes snaps back on fast drops over column borders.',
+    type: 'bug',
+    status: 'todo',
+    assignee: 'Elias Tanzer',
+    dueDate: '2026-06-11',
+    createdDate: '2026-06-10',
+  },
+  {
+    id: 't_prog_1',
+    title: 'Context Markdown Serialization',
+    description: 'Implement M10 copy-as-prompt feature for the task modal.',
+    type: 'feature',
+    status: 'in-progress',
+    assignee: 'Tom Troll',
+    dueDate: '2026-06-14',
+    createdDate: '2026-06-08',
+  },
+  {
+    id: 't_prog_2',
+    title: 'Mobile Nav adjustments',
+    description: 'The header is overflowing horizontally on smaller phone screens.',
+    type: 'bug',
+    status: 'in-progress',
+    assignee: 'Elias Tanzer',
+    dueDate: '2026-06-12',
+    createdDate: '2026-06-09',
+  },
+  {
+    id: 't_prog_3',
+    title: 'Local state migration',
+    description: 'Evaluating if we should move from localStorage to IndexedDB.',
+    type: 'feature',
+    status: 'in-progress',
+    assignee: 'Tom Troll',
+    dueDate: '2026-06-16',
+    createdDate: '2026-06-09',
+  },
+  {
+    id: 't_rev_1',
+    title: 'Color contrast fixes',
+    description: 'Updated pastel colors for WCAG AA compliance across all components.',
+    type: 'feature',
+    status: 'review',
+    assignee: 'Tom Troll',
+    dueDate: '2026-06-10',
+    createdDate: '2026-06-05',
+  },
+  {
+    id: 't_rev_2',
+    title: 'Fix due date display bug',
+    description: 'Was displaying NaN for missing dates in Safari.',
+    type: 'bug',
+    status: 'review',
+    assignee: 'Elias Tanzer',
+    dueDate: '2026-06-09',
+    createdDate: '2026-06-06',
+  },
+  {
+    id: 't_rev_3',
+    title: 'Avatar Component Extraction',
+    description: 'Extract getInitials to a separate reusable component to reduce duplication.',
+    type: 'feature',
+    status: 'review',
+    assignee: 'Tom Troll',
+    dueDate: '2026-06-12',
+    createdDate: '2026-06-07',
+  },
+  {
+    id: 't_done_1',
+    title: 'Write PRD document',
+    description: 'Completed phase 2 planning and PRD finalization.',
+    type: 'feature',
+    status: 'done',
+    assignee: 'Elias Tanzer',
+    dueDate: '2026-05-28',
+    createdDate: '2026-05-25',
+  },
+  {
+    id: 't_done_2',
+    title: 'Initialize Tailwind config',
+    description: 'Added custom fonts, color palettes, and necessary plugins.',
+    type: 'feature',
+    status: 'done',
+    assignee: 'Tom Troll',
+    dueDate: '2026-05-29',
+    createdDate: '2026-05-28',
+  },
+  {
+    id: 't_done_3',
+    title: 'Team workload strip',
+    description: 'M7 implementation for workload counting and display.',
+    type: 'feature',
+    status: 'done',
+    assignee: 'Elias Tanzer',
+    dueDate: '2026-06-05',
+    createdDate: '2026-06-01',
   }
 ];
 
@@ -666,6 +786,17 @@ export default function App() {
   const [tasks, setTasks] = useLocalStorage('vibetracker.tasks', SEED_TASKS);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+
+  // Inject demo tasks if missing
+  useEffect(() => {
+    setTasks(prev => {
+      const missingSeeds = SEED_TASKS.filter(st => !prev.some(t => t.id === st.id));
+      if (missingSeeds.length > 0) {
+        return [...prev, ...missingSeeds];
+      }
+      return prev;
+    });
+  }, [setTasks]);
 
   // Auto-refresh hook to ensure due-date tags color and texts update automatically in real-time
   const [, setTick] = useState(0);
