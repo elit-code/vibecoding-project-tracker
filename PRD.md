@@ -139,7 +139,7 @@ Where AI will **not** save you time:
 Keep the Context field of each real task up to date as you work. By the end of the hackathon you should have a handful of curated context blocks — those become part of your Module 5 "Vibe Coding History" deliverable.
 
 ## 11. Team identity
-
+.
 Fill in:
 
 - **Team name:** BoraBoraBass
