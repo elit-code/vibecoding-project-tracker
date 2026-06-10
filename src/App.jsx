@@ -523,8 +523,16 @@ export default function App() {
     setTasks(tasks.map(t => t.id === taskId ? { ...t, assignee: newAssignee } : t));
   };
 
-  // TODO M11 anchors:
-  //   const [anchors, setAnchors] = useLocalStorage('vibetracker.anchors', [...]);
+  const [anchors, setAnchors] = useLocalStorage('vibetracker.anchors', [
+    { id: 'presentation', label: 'Presentation', url: '' },
+    { id: 'demo', label: 'Demo', url: '' },
+    { id: 'report', label: 'Report', url: '' },
+    { id: 'documentation', label: 'Documentation', url: '' },
+  ]);
+
+  const handleAnchorChange = (id, newUrl) => {
+    setAnchors(anchors.map(a => a.id === id ? { ...a, url: newUrl } : a));
+  };
 
   return (
     <div className="min-h-screen p-6">
@@ -564,7 +572,33 @@ export default function App() {
         })}
       </div>
 
-      {/* TODO M11 anchors: render the Anchor Board (Presentation / Demo / Report / Documentation) above the board. */}
+      {/* Anchor Board */}
+      <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {anchors.map(anchor => {
+          const isFilled = anchor.url && anchor.url.trim().length > 0;
+          return (
+            <div key={anchor.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm flex flex-col gap-2 transition-shadow hover:shadow-md">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-sm text-slate-800">{anchor.label}</span>
+                <span className="flex items-center justify-center h-3 w-3" title={isFilled ? "Link active" : "No link"}>
+                  {isFilled ? (
+                    <span className="inline-flex rounded-full h-3 w-3 bg-feature"></span>
+                  ) : (
+                    <span className="inline-flex rounded-full h-3 w-3 border-2 border-slate-300 bg-transparent"></span>
+                  )}
+                </span>
+              </div>
+              <input 
+                type="url" 
+                placeholder="Paste URL..." 
+                value={anchor.url || ''} 
+                onChange={(e) => handleAnchorChange(anchor.id, e.target.value)}
+                className="w-full text-xs border border-slate-300 rounded p-1.5 focus:outline-none focus:ring-1 focus:ring-slate-400"
+              />
+            </div>
+          );
+        })}
+      </div>
 
       {/*
         TODO M5 crud-modal:
