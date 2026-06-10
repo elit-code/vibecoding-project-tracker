@@ -140,9 +140,9 @@ function getDueDateBadgeStyles(task) {
     case 'warning':
       return 'bg-due-warning border-due-warning text-slate-900 font-bold shadow-sm';
     case 'overdue':
-      return 'bg-due-overdue border-due-overdue text-red-950 font-extrabold animate-pulse shadow-md';
+      return 'bg-due-overdue border-due-overdue text-red-950 font-extrabold animate-pulse shadow-soft-hover';
     case 'neutral':
-      return 'bg-due-neutral border-due-neutral text-white font-bold shadow-sm';
+      return 'bg-due-neutral border-due-neutral text-slate-900 font-bold shadow-soft';
     default:
       return 'bg-slate-100 border-slate-200 text-slate-600';
   }
@@ -578,10 +578,10 @@ ${context}`;
 
         <div className="p-4 border-t border-slate-200 flex justify-end gap-2">
           {task && (
-            <button type="button" onClick={() => onDelete(task.id)} className="mr-auto px-4 py-2 text-red-600 hover:bg-red-50 rounded font-medium transition-colors">Delete</button>
+            <button type="button" onClick={() => onDelete(task.id)} className="mr-auto px-4 py-2 text-rose-600 hover:bg-rose-50 rounded-soft font-medium transition-all duration-250">Delete</button>
           )}
-          <button type="button" onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded font-medium transition-colors">Cancel</button>
-          <button type="button" onClick={() => onSave(formData)} className={`px-4 py-2 text-white rounded font-medium transition-colors ${isFeature ? 'bg-feature hover:bg-emerald-600' : 'bg-bug hover:bg-red-700'
+          <button type="button" onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-soft font-medium transition-all duration-250">Cancel</button>
+          <button type="button" onClick={() => onSave(formData)} className={`px-4 py-2 text-slate-900 rounded-soft font-bold transition-all duration-250 ${isFeature ? 'bg-feature hover:opacity-80' : 'bg-bug hover:opacity-80'
             }`}>Save</button>
         </div>
       </div>
@@ -759,7 +759,7 @@ export default function App() {
         </div>
         <button
           onClick={() => handleOpenModal()}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition-colors"
+          className="bg-accent hover:opacity-80 text-slate-900 font-bold py-2 px-4 rounded shadow transition-all duration-250"
         >
           + Add Task
         </button>
@@ -872,7 +872,7 @@ export default function App() {
                                   dueDateState === 'overdue' ? themeColors['due-overdue'] :
                                     dueDateState === 'neutral' ? themeColors['due-neutral'] : '#f1f5f9',
                               color: dueDateState === 'overdue' ? '#7f1d1d' :
-                                dueDateState === 'neutral' ? '#ffffff' : '#101415',
+                                '#101415',
                               borderColor: dueDateState === 'safe' ? themeColors['due-safe'] :
                                 dueDateState === 'warning' ? themeColors['due-warning'] :
                                   dueDateState === 'overdue' ? themeColors['due-overdue'] :
