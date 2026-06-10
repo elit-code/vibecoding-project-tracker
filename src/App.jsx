@@ -115,6 +115,28 @@ export function useLocalStorage(key, initialValue) {
 
   return [value, setValue];
 }
+function FeatureIcon({ className = "w-4 h-4" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+    </svg>
+  );
+}
+
+function BugIcon({ className = "w-4 h-4" }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      {/* Head */}
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6a3 3 0 00-3 3v1h6V9a3 3 0 00-3-3z" />
+      {/* Antennas */}
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 6c0-1.5-1-2-1.5-2M15 6c0-1.5 1-2 1.5-2" />
+      {/* Body */}
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 10h6v6a3 3 0 01-6 0v-6z" />
+      {/* Legs */}
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 11h3M15 11h3M5 14h4M15 14h4M6 17h3M15 17h3" />
+    </svg>
+  );
+}
 
 function TaskModal({ task, onSave, onClose, onDelete }) {
   const [formData, setFormData] = useState(task || {
@@ -133,36 +155,47 @@ function TaskModal({ task, onSave, onClose, onDelete }) {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const isFeature = formData.type === 'feature';
+  const ringClass = isFeature
+    ? 'focus:ring-2 focus:ring-feature focus:border-feature'
+    : 'focus:ring-2 focus:ring-bug focus:border-bug';
+
   return (
     <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md flex flex-col max-h-full">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md flex flex-col max-h-full overflow-hidden">
+        <div className={`h-1.5 w-full shrink-0 ${isFeature ? 'bg-feature' : 'bg-bug'}`} />
         <div className="flex justify-between items-center p-4 border-b border-slate-200">
-          <h2 className="text-lg font-bold text-slate-800">{task ? 'Edit Task' : 'New Task'}</h2>
+          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <span className={isFeature ? 'text-feature' : 'text-bug'}>
+              {isFeature ? <FeatureIcon className="w-5 h-5" /> : <BugIcon className="w-5 h-5" />}
+            </span>
+            {task ? 'Edit Task' : 'New Task'}
+          </h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
         </div>
 
         <div className="p-4 overflow-y-auto flex flex-col gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
-            <input type="text" name="title" value={formData.title} onChange={handleChange} className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+            <input type="text" name="title" value={formData.title} onChange={handleChange} className={`w-full border border-slate-300 rounded p-2 focus:outline-none ${ringClass}`} required />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-            <textarea name="description" value={formData.description} onChange={handleChange} className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none h-24" />
+            <textarea name="description" value={formData.description} onChange={handleChange} className={`w-full border border-slate-300 rounded p-2 focus:outline-none h-24 ${ringClass}`} />
           </div>
 
           <div className="flex gap-4">
             <div className="flex-1">
               <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
-              <select name="type" value={formData.type} onChange={handleChange} className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <select name="type" value={formData.type} onChange={handleChange} className={`w-full border border-slate-300 rounded p-2 focus:outline-none ${ringClass}`}>
                 <option value="feature">Feature</option>
                 <option value="bug">Bug</option>
               </select>
             </div>
             <div className="flex-1">
               <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-              <select name="status" value={formData.status} onChange={handleChange} className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <select name="status" value={formData.status} onChange={handleChange} className={`w-full border border-slate-300 rounded p-2 focus:outline-none ${ringClass}`}>
                 {STAGES.map(stage => (
                   <option key={stage.id} value={stage.id}>{stage.label}</option>
                 ))}
@@ -173,7 +206,7 @@ function TaskModal({ task, onSave, onClose, onDelete }) {
           <div className="flex gap-4">
             <div className="flex-1">
               <label className="block text-sm font-medium text-slate-700 mb-1">Assignee</label>
-              <select name="assignee" value={formData.assignee} onChange={handleChange} className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <select name="assignee" value={formData.assignee} onChange={handleChange} className={`w-full border border-slate-300 rounded p-2 focus:outline-none ${ringClass}`}>
                 {TEAM.map(member => (
                   <option key={member} value={member}>{member}</option>
                 ))}
@@ -181,7 +214,7 @@ function TaskModal({ task, onSave, onClose, onDelete }) {
             </div>
             <div className="flex-1">
               <label className="block text-sm font-medium text-slate-700 mb-1">Due Date</label>
-              <input type="date" name="dueDate" value={formData.dueDate || ''} onChange={handleChange} className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+              <input type="date" name="dueDate" value={formData.dueDate || ''} onChange={handleChange} className={`w-full border border-slate-300 rounded p-2 focus:outline-none ${ringClass}`} />
             </div>
           </div>
         </div>
@@ -191,7 +224,9 @@ function TaskModal({ task, onSave, onClose, onDelete }) {
             <button type="button" onClick={() => onDelete(task.id)} className="mr-auto px-4 py-2 text-red-600 hover:bg-red-50 rounded font-medium transition-colors">Delete</button>
           )}
           <button type="button" onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded font-medium transition-colors">Cancel</button>
-          <button type="button" onClick={() => onSave(formData)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors">Save</button>
+          <button type="button" onClick={() => onSave(formData)} className={`px-4 py-2 text-white rounded font-medium transition-colors ${
+            isFeature ? 'bg-feature hover:bg-emerald-600' : 'bg-bug hover:bg-red-700'
+          }`}>Save</button>
         </div>
       </div>
     </div>
@@ -263,19 +298,42 @@ export default function App() {
           <div key={stage.id} className="flex-1 flex flex-col rounded-lg bg-slate-100 p-4 border border-slate-200">
             <h2 className="font-semibold text-slate-700 mb-4">{stage.label}</h2>
             <div className="flex-1 flex flex-col gap-3">
-              {tasks.filter(t => t.status === stage.id).map(task => (
-                <div
-                  key={task.id}
-                  onClick={() => handleOpenModal(task)}
-                  className="bg-white p-3 rounded shadow-sm border border-slate-200 flex flex-col gap-2 cursor-pointer hover:shadow-md transition-shadow"
-                >
-                  <span className="font-medium text-slate-800">{task.title}</span>
-                  <div className="flex justify-between items-center mt-1">
-                    <span className="text-xs bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-600">{task.assignee}</span>
-                    <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400">{task.type}</span>
+              {tasks.filter(t => t.status === stage.id).map(task => {
+                const isFeature = task.type === 'feature';
+                return (
+                  <div
+                    key={task.id}
+                    onClick={() => handleOpenModal(task)}
+                    className={`bg-white p-3 rounded shadow-sm border border-slate-200 border-l-4 ${
+                      isFeature ? 'border-l-feature bg-emerald-50/10' : 'border-l-bug bg-red-50/10'
+                    } flex flex-col gap-2 cursor-pointer hover:shadow-md transition-shadow relative group`}
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="font-medium text-slate-800 leading-tight">{task.title}</span>
+                      <span className={`shrink-0 ${isFeature ? 'text-feature' : 'text-bug'}`}>
+                        {isFeature ? <FeatureIcon className="w-4 h-4" /> : <BugIcon className="w-4 h-4" />}
+                      </span>
+                    </div>
+                    {task.description && (
+                      <p className="text-xs text-slate-500 line-clamp-2">{task.description}</p>
+                    )}
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="text-xs bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-600">
+                        {task.assignee}
+                      </span>
+                      <span
+                        className={`text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded border ${
+                          isFeature
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                            : 'bg-red-50 border-red-200 text-red-700'
+                        }`}
+                      >
+                        {task.type}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}
