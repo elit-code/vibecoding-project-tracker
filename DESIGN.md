@@ -12,17 +12,17 @@
 
 One sentence that captures the feeling the tracker should leave you with.
 
-`<TODO>`
+Clarity in complexity: a sophisticated, atmospheric cockpit that pairs deep oceanic tones with glassmorphic accents to keep the user focused and calm.
 
 Two or three references that capture the vibe (links to dribbble shots, screenshots of apps you admire, Pinterest boards — anything visual):
 
-- `<TODO>`
-- `<TODO>`
-- `<TODO>`
+* Dark mode, glassmorphic SaaS dashboards with heavy backdrop blurs.
+* High-contrast, deep-sea themed code editor themes like Cobalt2.
+* Linear's minimalist, dark-mode task management interface.
 
 Anti-references — what we are explicitly **not** trying to look like:
 
-- `<TODO>`
+* Cluttered, heavy-shadow traditional SaaS interfaces with default Tailwind blues and stark white backgrounds.
 
 ## 2. Color palette
 
@@ -31,83 +31,83 @@ These are the colors the build milestones will reference. Once chosen, paste the
 ### Brand
 
 | Token | Hex | Where it shows up |
-|---|---|---|
-| `brand-primary` | `<TODO>` | Header, "+" button, focus rings |
-| `brand-accent` | `<TODO>` | Highlights, hover states, links |
-| `surface-page` | `<TODO>` | Page background |
-| `surface-card` | `<TODO>` | Card background |
-| `text-primary` | `<TODO>` | Body text |
-| `text-muted` | `<TODO>` | Captions, dates, counts |
+| --- | --- | --- |
+| `brand-primary` | #57f1db | Header, "+" button, focus rings |
+| `brand-accent` | #3cddc7 | Highlights, hover states, links |
+| `surface-page` | #101415 | Page background |
+| `surface-card` | #1d2022 | Card background |
+| `text-primary` | #e0e3e5 | Body text |
+| `text-muted` | #bacac5 | Captions, dates, counts |
 
 ### Task type (M6 `tag-style`)
 
 | Token | Hex | When used |
-|---|---|---|
-| `type-feature` | `<TODO>` | Cards tagged `feature` (accent stripe + icon) |
-| `type-bug` | `<TODO>` | Cards tagged `bug` (accent stripe + icon) |
+| --- | --- | --- |
+| `type-feature` | #cfdaf2 | Cards tagged `feature` (accent stripe + icon) |
+| `type-bug` | #ffb4ab | Cards tagged `bug` (accent stripe + icon) |
 
 ### Due-date states (M8 `due-tint`)
 
 | Token | Hex | When used |
-|---|---|---|
-| `due-safe` | `<TODO>` | More than 2 days out |
-| `due-warning` | `<TODO>` | Less than 24 hours |
-| `due-overdue` | `<TODO>` | Past due |
-| `due-neutral` | `<TODO>` | Done (overrides date) |
+| --- | --- | --- |
+| `due-safe` | #3cddc7 | More than 2 days out |
+| `due-warning` | #cfdaf2 | Less than 24 hours |
+| `due-overdue` | #ffb4ab | Past due |
+| `due-neutral` | #39494e | Done (overrides date) |
 
 ## 3. Typography
 
 | Role | Font | Why |
-|---|---|---|
-| Heading | `<TODO>` | `<TODO one sentence>` |
-| Body | `<TODO>` | `<TODO one sentence>` |
-| Monospace (tags, badges, code) | `<TODO>` | `<TODO one sentence>` |
+| --- | --- | --- |
+| Heading | Comfortaa | Brings a soft, geometric, and friendly energy with rounded terminals that complement the glass UI. |
+| Body | Hanken Grotesk | Sharp, contemporary geometry ensures excellent legibility at small sizes for task descriptions. |
+| Monospace | JetBrains Mono | Provides a precise, engineered look for technical metadata like tags, timestamps, and IDs. |
 
 Suggested sizes (override only if the design demands it):
 
-- Page title: 24 px / semibold
-- Section header: 16 px / semibold uppercase
-- Card title: 14 px / medium
-- Body: 14 px / regular
-- Caption: 12 px / regular muted
+* Page title: 24 px / semibold
+* Section header: 16 px / semibold uppercase
+* Card title: 14 px / medium
+* Body: 14 px / regular
+* Caption: 12 px / regular muted
 
 ## 4. Component principles
 
 One short sentence per element. These set the tone for the build phase — Person A's modal and Person B's anchor board should both feel like they came from this doc.
 
-- **Cards:** `<TODO>` (e.g. "Light, almost weightless; the only weight is from a 1px border, no shadow except on hover.")
-- **Buttons:** `<TODO>` (e.g. "Solid fill, no gradient, generous padding, rounded-md.")
-- **Modal:** `<TODO>` (e.g. "Centered, max-width-md, slate-900 backdrop at 50% opacity.")
-- **Empty states:** `<TODO>` (e.g. "Dashed border, muted text, never sad.")
-- **Drag affordance (if used):** `<TODO>` (e.g. "None — we use a status dropdown.")
+* **Cards:** Glassmorphic 1rem-radius containers at 80% opacity, featuring a subtle 1px top-border gradient and a soft 32px ambient shadow.
+* **Buttons:** Solid #57f1db background with black text for maximum contrast, 0.5rem radius, and a squishy scale-0.98 hover effect.
+* **Modal:** Large-scale glass surfaces that occupy 80% of the screen height, utilizing a heavy 40px backdrop blur to isolate user focus.
+* **Empty states:** Quiet and receding, utilizing low-opacity slate tones (#323537) and text that doesn't distract from active tasks.
+* **Drag affordance (if used):** None — rely on the card's entire surface area, applying a 2px primary teal outer glow when active to maintain the glass aesthetic.
 
 ## 5. Voice / microcopy
 
 Three lines of microcopy that capture the tone of the product. Keep it short — these are the words a stressed user reads at 11pm.
 
 | Where | Text |
-|---|---|
-| "+" button label | `<TODO>` (e.g. "+ Task" or "Add task" or "New") |
-| Empty column placeholder | `<TODO>` (e.g. "Nothing here yet — keep going.") |
-| Toast after "Copy as Prompt Context" | `<TODO>` (e.g. "Copied. Now paste it into the AI.") |
-| Confirm-delete message | `<TODO>` (e.g. "Delete this task? You can't undo.") |
-| Handoff toast (M7 `task-owner`) | `<TODO>` (e.g. "Handed off to {name}. They've got it.") |
+| --- | --- |
+| "+" button label | + Task |
+| Empty column placeholder | Awaiting input. |
+| Toast after "Copy as Prompt Context" | Context copied to clipboard. |
+| Confirm-delete message | Permanently delete this task? |
+| Handoff toast (M7 `task-owner`) | Handoff complete. {name} has the context. |
 
 ## 6. Logo / wordmark
 
 The tracker probably doesn't need a logo, but it does need a name and a wordmark style.
 
-- **Product name:** `<TODO>` (match PRD §11 team identity)
-- **Wordmark style:** `<TODO>` (e.g. "Just the name in the heading font, brand-primary color, no icon.")
+* **Product name:** Aetheric Kanban
+* **Wordmark style:** Just the name set in Comfortaa display-lg, using the brand-primary teal, with no icon to maintain modern minimalism.
 
 ## 7. Out of scope (this hackathon)
 
 To keep design tight, the following are explicitly not part of `design-done`:
 
-- A dark mode toggle. Pick one mode and ship it.
-- Multiple themes. One brand, applied consistently.
-- Animations beyond a 200 ms fade on toast notifications.
-- A custom icon set. Use [Lucide icons](https://lucide.dev) via Tailwind classes if you need any.
+* A dark mode toggle. Pick one mode and ship it.
+* Multiple themes. One brand, applied consistently.
+* Animations beyond a 200 ms fade on toast notifications.
+* A custom icon set. Use Lucide icons via Tailwind classes if you need any.
 
 ---
 
