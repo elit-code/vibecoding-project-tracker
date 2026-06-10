@@ -70,10 +70,8 @@ function getDueDateState(task) {
   if (diffHours <= 24) {
     return 'warning';
   }
-  if (diffHours > 48) {
-    return 'safe';
-  }
-  return null;
+  // All other active tasks due in more than 24 hours are calm (safe)
+  return 'safe';
 }
 
 function formatDueDate(dueDateStr) {
@@ -131,19 +129,19 @@ function getDueDateCardStyles(task) {
 
 function getDueDateBadgeStyles(task) {
   const state = getDueDateState(task);
-  if (!state) return 'bg-slate-50 border-slate-200 text-slate-600';
+  if (!state) return 'bg-slate-100 border-slate-200 text-slate-600';
   
   switch (state) {
     case 'safe':
-      return 'bg-due-safe border-due-safe/40 text-slate-800';
+      return 'bg-due-safe border-due-safe text-slate-900 font-bold shadow-sm';
     case 'warning':
-      return 'bg-due-warning border-due-warning/40 text-slate-800';
+      return 'bg-due-warning border-due-warning text-slate-900 font-bold shadow-sm';
     case 'overdue':
-      return 'bg-due-overdue border-due-overdue/40 text-red-950 font-bold animate-pulse';
+      return 'bg-due-overdue border-due-overdue text-red-950 font-extrabold animate-pulse shadow-md';
     case 'neutral':
-      return 'bg-due-neutral border-due-neutral/40 text-white';
+      return 'bg-due-neutral border-due-neutral text-white font-bold shadow-sm';
     default:
-      return 'bg-slate-50 border-slate-200 text-slate-600';
+      return 'bg-slate-100 border-slate-200 text-slate-600';
   }
 }
 
@@ -367,6 +365,15 @@ export default function App() {
   const [tasks, setTasks] = useLocalStorage('vibetracker.tasks', SEED_TASKS);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  
+  // Auto-refresh hook to ensure due-date tags color and texts update automatically in real-time
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick(tick => tick + 1);
+    }, 30000); // refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   const handleOpenModal = (task = null) => {
     setEditingTask(task);
@@ -475,7 +482,23 @@ export default function App() {
                     
                     {task.dueDate && (
                       <div className="flex items-center">
-                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded border flex items-center ${badgeStyles}`}>
+                        <span
+                          style={{
+                            backgroundColor: dueDateState === 'safe' ? '#3cddc7' :
+                                             dueDateState === 'warning' ? '#cfdaf2' :
+                                             dueDateState === 'overdue' ? '#ffb4ab' :
+                                             dueDateState === 'neutral' ? '#39494e' : '#f1f5f9',
+                            color: dueDateState === 'overdue' ? '#7f1d1d' :
+                                   dueDateState === 'neutral' ? '#ffffff' : '#101415',
+                            borderColor: dueDateState === 'safe' ? '#3cddc7' :
+                                         dueDateState === 'warning' ? '#cfdaf2' :
+                                         dueDateState === 'overdue' ? '#ffb4ab' :
+                                         dueDateState === 'neutral' ? '#39494e' : '#e2e8f0',
+                          }}
+                          className={`text-[10px] font-extrabold px-2 py-0.5 rounded border flex items-center shadow-sm ${
+                            dueDateState === 'overdue' ? 'animate-pulse shadow-md' : ''
+                          }`}
+                        >
                           <DueIcon state={dueDateState} />
                           {badgeText}
                         </span>
