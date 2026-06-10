@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import tailwindConfig from '../tailwind.config.js';
+
+const themeColors = tailwindConfig.theme.extend.colors;
 
 /**
  * Vibecoding Project Tracker — starter scaffold.
@@ -484,16 +487,16 @@ export default function App() {
                       <div className="flex items-center">
                         <span
                           style={{
-                            backgroundColor: dueDateState === 'safe' ? '#3cddc7' :
-                                             dueDateState === 'warning' ? '#cfdaf2' :
-                                             dueDateState === 'overdue' ? '#ffb4ab' :
-                                             dueDateState === 'neutral' ? '#39494e' : '#f1f5f9',
+                            backgroundColor: dueDateState === 'safe' ? themeColors['due-safe'] :
+                                             dueDateState === 'warning' ? themeColors['due-warning'] :
+                                             dueDateState === 'overdue' ? themeColors['due-overdue'] :
+                                             dueDateState === 'neutral' ? themeColors['due-neutral'] : '#f1f5f9',
                             color: dueDateState === 'overdue' ? '#7f1d1d' :
                                    dueDateState === 'neutral' ? '#ffffff' : '#101415',
-                            borderColor: dueDateState === 'safe' ? '#3cddc7' :
-                                         dueDateState === 'warning' ? '#cfdaf2' :
-                                         dueDateState === 'overdue' ? '#ffb4ab' :
-                                         dueDateState === 'neutral' ? '#39494e' : '#e2e8f0',
+                            borderColor: dueDateState === 'safe' ? themeColors['due-safe'] :
+                                         dueDateState === 'warning' ? themeColors['due-warning'] :
+                                         dueDateState === 'overdue' ? themeColors['due-overdue'] :
+                                         dueDateState === 'neutral' ? themeColors['due-neutral'] : '#e2e8f0',
                           }}
                           className={`text-[10px] font-extrabold px-2 py-0.5 rounded border flex items-center shadow-sm ${
                             dueDateState === 'overdue' ? 'animate-pulse shadow-md' : ''
