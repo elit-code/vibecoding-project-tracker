@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    allowedHosts: ['sb-64gsqsnnogwt.vercel.run'],
-  },
+    allowedHosts: ['.vercel.run']
+  }
 });
 
