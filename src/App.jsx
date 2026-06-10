@@ -520,11 +520,10 @@ ${context}`;
                 <button
                   type="button"
                   onClick={handleModalCopyContext}
-                  className={`text-xs font-bold px-2 py-0.5 rounded transition-all duration-200 flex items-center gap-1 border ${
-                    modalCopied
+                  className={`text-xs font-bold px-2 py-0.5 rounded transition-all duration-200 flex items-center gap-1 border ${modalCopied
                       ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm'
                       : 'text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 border-slate-200'
-                  }`}
+                    }`}
                   title="Copy Context"
                 >
                   {modalCopied ? (
@@ -645,6 +644,35 @@ export default function App() {
     setAnchors(anchors.map(a => a.id === id ? { ...a, url: newUrl } : a));
   };
 
+  const handleDragStart = (e, taskId) => {
+    e.dataTransfer.setData("text/plain", taskId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e, stageId) => {
+    e.preventDefault();
+    const taskId = e.dataTransfer.getData("text/plain");
+    if (!taskId) return;
+
+    setTasks(prevTasks => {
+      const taskIndex = prevTasks.findIndex(t => t.id === taskId);
+      if (taskIndex === -1) return prevTasks;
+
+      const task = prevTasks[taskIndex];
+      const updatedTask = { ...task, status: stageId };
+      const newTasks = [...prevTasks];
+      newTasks.splice(taskIndex, 1);
+      newTasks.push(updatedTask);
+
+      return newTasks;
+    });
+  };
+
   return (
     <div className="min-h-screen p-6">
       <header className="mb-6 flex items-center justify-between">
@@ -693,10 +721,10 @@ export default function App() {
                   )}
                 </span>
               </div>
-              <input 
-                type="url" 
-                placeholder="Paste URL..." 
-                value={anchor.url || ''} 
+              <input
+                type="url"
+                placeholder="Paste URL..."
+                value={anchor.url || ''}
                 onChange={(e) => handleAnchorChange(anchor.id, e.target.value)}
                 className="w-full text-xs border border-slate-300 rounded p-1.5 focus:outline-none focus:ring-1 focus:ring-slate-400"
               />
@@ -712,85 +740,100 @@ export default function App() {
       */}
       <main className="flex gap-4 min-h-[calc(100vh-120px)]">
         {STAGES.map(stage => (
-          <div key={stage.id} className="flex-1 flex flex-col rounded-lg bg-slate-100 p-4 border border-slate-200">
+          <div
+            key={stage.id}
+            className="flex-1 flex flex-col rounded-lg bg-slate-100 p-4 border border-slate-200"
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, stage.id)}
+          >
             <h2 className="font-semibold text-slate-700 mb-4">{stage.label}</h2>
             <div className="flex-1 flex flex-col gap-3">
-              {tasks.filter(t => t.status === stage.id).map(task => {
-                const isFeature = task.type === 'feature';
-                const dueDateState = getDueDateState(task);
-                const cardStyles = getDueDateCardStyles(task);
-                const badgeStyles = getDueDateBadgeStyles(task);
-                const badgeText = getDueDateBadgeText(task);
+              {tasks
+                .filter(t => t.status === stage.id)
+                .sort((a, b) => {
+                  if (!a.dueDate && !b.dueDate) return 0;
+                  if (!a.dueDate) return 1;
+                  if (!b.dueDate) return -1;
+                  return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+                })
+                .map(task => {
+                  const isFeature = task.type === 'feature';
+                  const dueDateState = getDueDateState(task);
+                  const cardStyles = getDueDateCardStyles(task);
+                  const badgeStyles = getDueDateBadgeStyles(task);
+                  const badgeText = getDueDateBadgeText(task);
 
-                return (
-                  <div
-                    key={task.id}
-                    onClick={() => handleOpenModal(task)}
-                    className={`p-3 rounded shadow-sm border border-l-4 ${isFeature ? 'border-l-feature' : 'border-l-bug'} ${cardStyles} flex flex-col gap-2 cursor-pointer hover:shadow-md transition-shadow relative group`}
-                  >
-                    <div className="flex justify-between items-start gap-2">
-                      <span className="font-medium text-slate-800 leading-tight">{task.title}</span>
-                      <span className={`shrink-0 ${isFeature ? 'text-feature' : 'text-bug'}`}>
-                        {isFeature ? <FeatureIcon className="w-4 h-4" /> : <BugIcon className="w-4 h-4" />}
-                      </span>
-                    </div>
-                    {task.description && (
-                      <p className="text-xs text-slate-500 line-clamp-2">{task.description}</p>
-                    )}
-
-                    {task.dueDate && (
-                      <div className="flex items-center">
-                        <span
-                          style={{
-                            backgroundColor: dueDateState === 'safe' ? themeColors['due-safe'] :
-                              dueDateState === 'warning' ? themeColors['due-warning'] :
-                                dueDateState === 'overdue' ? themeColors['due-overdue'] :
-                                  dueDateState === 'neutral' ? themeColors['due-neutral'] : '#f1f5f9',
-                            color: dueDateState === 'overdue' ? '#7f1d1d' :
-                              dueDateState === 'neutral' ? '#ffffff' : '#101415',
-                            borderColor: dueDateState === 'safe' ? themeColors['due-safe'] :
-                              dueDateState === 'warning' ? themeColors['due-warning'] :
-                                dueDateState === 'overdue' ? themeColors['due-overdue'] :
-                                  dueDateState === 'neutral' ? themeColors['due-neutral'] : '#e2e8f0',
-                          }}
-                          className={`text-[10px] font-extrabold px-2 py-0.5 rounded border flex items-center shadow-sm ${dueDateState === 'overdue' ? 'animate-pulse shadow-md' : ''
-                            }`}
-                        >
-                          <DueIcon state={dueDateState} />
-                          {badgeText}
+                  return (
+                    <div
+                      key={task.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, task.id)}
+                      onClick={() => handleOpenModal(task)}
+                      className={`p-3 rounded shadow-sm border border-l-4 ${isFeature ? 'border-l-feature' : 'border-l-bug'} ${cardStyles} flex flex-col gap-2 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow relative group`}
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <span className="font-medium text-slate-800 leading-tight">{task.title}</span>
+                        <span className={`shrink-0 ${isFeature ? 'text-feature' : 'text-bug'}`}>
+                          {isFeature ? <FeatureIcon className="w-4 h-4" /> : <BugIcon className="w-4 h-4" />}
                         </span>
                       </div>
-                    )}
+                      {task.description && (
+                        <p className="text-xs text-slate-500 line-clamp-2">{task.description}</p>
+                      )}
 
-                    <div className="flex justify-between items-end mt-1 gap-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold shrink-0" title={task.assignee}>
-                          {getInitials(task.assignee)}
+                      {task.dueDate && (
+                        <div className="flex items-center">
+                          <span
+                            style={{
+                              backgroundColor: dueDateState === 'safe' ? themeColors['due-safe'] :
+                                dueDateState === 'warning' ? themeColors['due-warning'] :
+                                  dueDateState === 'overdue' ? themeColors['due-overdue'] :
+                                    dueDateState === 'neutral' ? themeColors['due-neutral'] : '#f1f5f9',
+                              color: dueDateState === 'overdue' ? '#7f1d1d' :
+                                dueDateState === 'neutral' ? '#ffffff' : '#101415',
+                              borderColor: dueDateState === 'safe' ? themeColors['due-safe'] :
+                                dueDateState === 'warning' ? themeColors['due-warning'] :
+                                  dueDateState === 'overdue' ? themeColors['due-overdue'] :
+                                    dueDateState === 'neutral' ? themeColors['due-neutral'] : '#e2e8f0',
+                            }}
+                            className={`text-[10px] font-extrabold px-2 py-0.5 rounded border flex items-center shadow-sm ${dueDateState === 'overdue' ? 'animate-pulse shadow-md' : ''
+                              }`}
+                          >
+                            <DueIcon state={dueDateState} />
+                            {badgeText}
+                          </span>
                         </div>
-                        <select
-                          value={task.assignee}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => handleHandoff(e, task.id, e.target.value)}
-                          className="text-xs border-0 bg-transparent text-slate-600 focus:ring-0 p-0 cursor-pointer outline-none font-medium hover:text-slate-800 truncate"
-                          title="Hand off to..."
+                      )}
+
+                      <div className="flex justify-between items-end mt-1 gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold shrink-0" title={task.assignee}>
+                            {getInitials(task.assignee)}
+                          </div>
+                          <select
+                            value={task.assignee}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => handleHandoff(e, task.id, e.target.value)}
+                            className="text-xs border-0 bg-transparent text-slate-600 focus:ring-0 p-0 cursor-pointer outline-none font-medium hover:text-slate-800 truncate"
+                            title="Hand off to..."
+                          >
+                            {TEAM.map(member => (
+                              <option key={member} value={member}>{member}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <span
+                          className={`text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded border ${isFeature
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                            : 'bg-red-50 border-red-200 text-red-700'
+                            }`}
                         >
-                          {TEAM.map(member => (
-                            <option key={member} value={member}>{member}</option>
-                          ))}
-                        </select>
+                          {task.type}
+                        </span>
                       </div>
-                      <span
-                        className={`text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded border ${isFeature
-                          ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                          : 'bg-red-50 border-red-200 text-red-700'
-                          }`}
-                      >
-                        {task.type}
-                      </span>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </div>
         ))}
