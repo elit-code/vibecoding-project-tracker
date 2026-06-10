@@ -70,7 +70,10 @@ function getDueDateState(task) {
   if (diffHours <= 24) {
     return 'warning';
   }
-  return 'safe';
+  if (diffHours > 48) {
+    return 'safe';
+  }
+  return null;
 }
 
 function formatDueDate(dueDateStr) {
@@ -128,7 +131,7 @@ function getDueDateCardStyles(task) {
 
 function getDueDateBadgeStyles(task) {
   const state = getDueDateState(task);
-  if (!state) return '';
+  if (!state) return 'bg-slate-50 border-slate-200 text-slate-600';
   
   switch (state) {
     case 'safe':
@@ -140,34 +143,34 @@ function getDueDateBadgeStyles(task) {
     case 'neutral':
       return 'bg-due-neutral border-due-neutral/40 text-white';
     default:
-      return '';
+      return 'bg-slate-50 border-slate-200 text-slate-600';
   }
 }
 
 function DueIcon({ state }) {
   if (state === 'overdue') {
     return (
-      <svg className="w-3 h-3 mr-1 text-red-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+      <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
       </svg>
     );
   }
   if (state === 'warning') {
     return (
-      <svg className="w-3 h-3 mr-1 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     );
   }
   if (state === 'neutral') {
     return (
-      <svg className="w-3.5 h-3.5 mr-1 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg className="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     );
   }
   return (
-    <svg className="w-3 h-3 mr-1 text-slate-800" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
     </svg>
   );
