@@ -144,7 +144,7 @@ Fill in:
 
 - **Team name:** BoraBoraBass
 - **Tagline (one sentence):** A project management tool for vibecoders
-- **Tracker URL after deploy:** `<TODO>` (Vercel will give it to you)
+- **Tracker URL after deploy:** `https://v0-boraborabass-project-tracker.vercel.app` (Vercel will give it to you)
 
 ## 12. Out of scope (do not build)
 
