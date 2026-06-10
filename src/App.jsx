@@ -116,19 +116,124 @@ export function useLocalStorage(key, initialValue) {
   return [value, setValue];
 }
 
+function TaskModal({ task, onSave, onClose, onDelete }) {
+  const [formData, setFormData] = useState(task || {
+    id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15),
+    title: '',
+    description: '',
+    type: 'feature',
+    status: 'todo',
+    assignee: TEAM[0],
+    dueDate: '',
+    createdDate: new Date().toISOString().split('T')[0],
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md flex flex-col max-h-full">
+        <div className="flex justify-between items-center p-4 border-b border-slate-200">
+          <h2 className="text-lg font-bold text-slate-800">{task ? 'Edit Task' : 'New Task'}</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+        </div>
+
+        <div className="p-4 overflow-y-auto flex flex-col gap-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+            <input type="text" name="title" value={formData.title} onChange={handleChange} className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+            <textarea name="description" value={formData.description} onChange={handleChange} className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none h-24" />
+          </div>
+
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
+              <select name="type" value={formData.type} onChange={handleChange} className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <option value="feature">Feature</option>
+                <option value="bug">Bug</option>
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+              <select name="status" value={formData.status} onChange={handleChange} className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                {STAGES.map(stage => (
+                  <option key={stage.id} value={stage.id}>{stage.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Assignee</label>
+              <select name="assignee" value={formData.assignee} onChange={handleChange} className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                {TEAM.map(member => (
+                  <option key={member} value={member}>{member}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Due Date</label>
+              <input type="date" name="dueDate" value={formData.dueDate || ''} onChange={handleChange} className="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 border-t border-slate-200 flex justify-end gap-2">
+          {task && (
+            <button type="button" onClick={() => onDelete(task.id)} className="mr-auto px-4 py-2 text-red-600 hover:bg-red-50 rounded font-medium transition-colors">Delete</button>
+          )}
+          <button type="button" onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded font-medium transition-colors">Cancel</button>
+          <button type="button" onClick={() => onSave(formData)} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium transition-colors">Save</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   // TODO M4 data-model:
   const [tasks, setTasks] = useLocalStorage('vibetracker.tasks', SEED_TASKS);
-  //
-  // TODO M5 crud-modal:
-  //   const [editing, setEditing] = useState(null);
-  //
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+
+  const handleOpenModal = (task = null) => {
+    setEditingTask(task);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setEditingTask(null);
+    setIsModalOpen(false);
+  };
+
+  const handleSaveTask = (taskData) => {
+    if (editingTask) {
+      setTasks(tasks.map(t => t.id === taskData.id ? taskData : t));
+    } else {
+      setTasks([...tasks, taskData]);
+    }
+    handleCloseModal();
+  };
+
+  const handleDeleteTask = (taskId) => {
+    setTasks(tasks.filter(t => t.id !== taskId));
+    handleCloseModal();
+  };
+
   // TODO M11 anchors:
   //   const [anchors, setAnchors] = useLocalStorage('vibetracker.anchors', [...]);
 
   return (
     <div className="min-h-screen p-6">
-      <header className="mb-6 flex items-end justify-between">
+      <header className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
             Vibecoding Project Tracker
@@ -138,6 +243,12 @@ export default function App() {
             BoraBoraBass
           </p>
         </div>
+        <button
+          onClick={() => handleOpenModal()}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition-colors"
+        >
+          + Add Task
+        </button>
       </header>
 
       {/* TODO M11 anchors: render the Anchor Board (Presentation / Demo / Report / Documentation) above the board. */}
@@ -153,7 +264,11 @@ export default function App() {
             <h2 className="font-semibold text-slate-700 mb-4">{stage.label}</h2>
             <div className="flex-1 flex flex-col gap-3">
               {tasks.filter(t => t.status === stage.id).map(task => (
-                <div key={task.id} className="bg-white p-3 rounded shadow-sm border border-slate-200 flex flex-col gap-2 hover:shadow-md transition-shadow">
+                <div
+                  key={task.id}
+                  onClick={() => handleOpenModal(task)}
+                  className="bg-white p-3 rounded shadow-sm border border-slate-200 flex flex-col gap-2 cursor-pointer hover:shadow-md transition-shadow"
+                >
                   <span className="font-medium text-slate-800">{task.title}</span>
                   <div className="flex justify-between items-center mt-1">
                     <span className="text-xs bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-600">{task.assignee}</span>
@@ -165,6 +280,15 @@ export default function App() {
           </div>
         ))}
       </main>
+
+      {isModalOpen && (
+        <TaskModal
+          task={editingTask}
+          onSave={handleSaveTask}
+          onClose={handleCloseModal}
+          onDelete={handleDeleteTask}
+        />
+      )}
     </div>
   );
 }
