@@ -246,6 +246,117 @@ export function useLocalStorage(key, initialValue) {
 
   return [value, setValue];
 }
+function ContributorCard({ member, tasks }) {
+  const memberTasks = tasks.filter(t => t.assignee === member);
+  const totalTasks = memberTasks.length;
+  const completedTasks = memberTasks.filter(t => t.status === 'done').length;
+  const completionPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  // SVG parameters
+  const size = 48;
+  const strokeWidth = 3;
+  const radius = (size - strokeWidth) / 2; // 22.5
+  const circumference = 2 * Math.PI * radius; // ~141.37
+  const strokeDashoffset = circumference - (completionPercentage / 100) * circumference;
+
+  const isCompleted = completionPercentage === 100 && totalTasks > 0;
+  const hasTasks = totalTasks > 0;
+
+  // 0% - 99%: distinct blue/teal progress color, 100%: success green
+  const ringColor = !hasTasks
+    ? 'stroke-slate-200'
+    : isCompleted
+      ? 'stroke-emerald-500'
+      : 'stroke-blue-500';
+
+  return (
+    <div className="relative group cursor-pointer">
+      <div className="flex items-center gap-4 bg-white p-3 rounded-xl border border-slate-200 shadow-sm min-w-[220px] transition-all duration-200 hover:shadow-md hover:border-slate-300">
+        {/* Ring & Initials Wrapper */}
+        <div className="relative flex items-center justify-center shrink-0" style={{ width: size, height: size }}>
+          <svg width={size} height={size} className="transform -rotate-90">
+            {/* Background track */}
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={radius}
+              className="stroke-slate-100"
+              strokeWidth={strokeWidth}
+              fill="transparent"
+            />
+            {/* Foreground progress */}
+            {hasTasks && (
+              <circle
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                className={`${ringColor} transition-all duration-500 ease-in-out`}
+                strokeWidth={strokeWidth}
+                fill="transparent"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+              />
+            )}
+          </svg>
+          
+          {/* Initials/Avatar inside the ring */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className={`w-[38px] h-[38px] rounded-full flex items-center justify-center font-bold text-xs shrink-0 select-none ${
+              isCompleted 
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/50' 
+                : !hasTasks
+                  ? 'bg-slate-50 text-slate-400'
+                  : 'bg-blue-50 text-blue-700 border border-blue-100/50'
+            }`}>
+              {getInitials(member)}
+            </div>
+          </div>
+          
+          {/* Success checkmark badge overlay for 100% */}
+          {isCompleted && (
+            <span className="absolute bottom-0 right-0 bg-emerald-500 text-white rounded-full p-0.5 border-2 border-white shadow-sm flex items-center justify-center w-4 h-4 animate-scale-in">
+              <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+          )}
+        </div>
+
+        {/* Text Metrics next to Ring */}
+        <div className="flex flex-col">
+          <span className="font-semibold text-sm text-slate-800">{member}</span>
+          <span className="text-xs text-slate-500">
+            {hasTasks
+              ? `${completedTasks}/${totalTasks} completed (${completionPercentage}%)`
+              : 'No tasks assigned'}
+          </span>
+        </div>
+      </div>
+
+      {/* Floating Tooltip on Hover */}
+      <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:flex flex-col items-center pointer-events-none transition-all duration-200">
+        <div className="bg-slate-950/90 backdrop-blur-sm text-slate-200 text-xs rounded-lg py-2 px-3 shadow-xl border border-slate-800 text-center min-w-[180px]">
+          <p className="font-semibold text-white mb-0.5">{member}</p>
+          <p className="text-[11px] text-slate-400">
+            {completedTasks} of {totalTasks} tasks completed
+          </p>
+          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1.5">
+            <div 
+              className={`h-full rounded-full transition-all duration-500 ${isCompleted ? 'bg-emerald-500' : 'bg-blue-500'}`} 
+              style={{ width: `${completionPercentage}%` }}
+            />
+          </div>
+          <p className="text-[10px] text-slate-500 mt-1 font-mono">
+            {completionPercentage}% Completion Rate
+          </p>
+        </div>
+        <div className="w-2.5 h-2.5 bg-slate-950/90 border-r border-b border-slate-800 transform rotate-45 -mt-1.5" />
+      </div>
+    </div>
+  );
+}
+
 function FeatureIcon({ className = "w-4 h-4" }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -554,22 +665,16 @@ export default function App() {
         </button>
       </header>
 
-      {/* Team Workload Strip */}
-      <div className="mb-6 flex gap-4 overflow-x-auto pb-2">
-        {TEAM.map(member => {
-          const activeTasks = tasks.filter(t => t.assignee === member && (t.status === 'todo' || t.status === 'in-progress' || t.status === 'review'));
-          return (
-            <div key={member} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm min-w-[200px]">
-              <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shrink-0">
-                {getInitials(member)}
-              </div>
-              <div className="flex flex-col">
-                <span className="font-semibold text-sm text-slate-800">{member}</span>
-                <span className="text-xs text-slate-500">{activeTasks.length} active task{activeTasks.length !== 1 && 's'}</span>
-              </div>
-            </div>
-          );
-        })}
+      {/* Contributors Overview */}
+      <div className="mb-6">
+        <h2 className="text-xs uppercase tracking-wider font-extrabold text-slate-400 mb-3 font-mono">
+          Contributors Overview
+        </h2>
+        <div className="flex gap-4 overflow-x-auto pb-2">
+          {TEAM.map(member => (
+            <ContributorCard key={member} member={member} tasks={tasks} />
+          ))}
+        </div>
       </div>
 
       {/* Anchor Board */}
