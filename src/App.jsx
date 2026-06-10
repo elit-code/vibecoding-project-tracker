@@ -46,6 +46,15 @@ export const STAGES = [
 // They become the only valid values for `Task.assignee`.
 export const TEAM = ['Elias Tanzer', 'Tom Troll'];
 
+function getInitials(name) {
+  if (!name) return '??';
+  const parts = name.split(' ');
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+  return parts[0].substring(0, 2).toUpperCase();
+}
+
 const SEED_TASKS = [
   {
     id: 't1',
@@ -224,9 +233,8 @@ function TaskModal({ task, onSave, onClose, onDelete }) {
             <button type="button" onClick={() => onDelete(task.id)} className="mr-auto px-4 py-2 text-red-600 hover:bg-red-50 rounded font-medium transition-colors">Delete</button>
           )}
           <button type="button" onClick={onClose} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded font-medium transition-colors">Cancel</button>
-          <button type="button" onClick={() => onSave(formData)} className={`px-4 py-2 text-white rounded font-medium transition-colors ${
-            isFeature ? 'bg-feature hover:bg-emerald-600' : 'bg-bug hover:bg-red-700'
-          }`}>Save</button>
+          <button type="button" onClick={() => onSave(formData)} className={`px-4 py-2 text-white rounded font-medium transition-colors ${isFeature ? 'bg-feature hover:bg-emerald-600' : 'bg-bug hover:bg-red-700'
+            }`}>Save</button>
         </div>
       </div>
     </div>
@@ -263,6 +271,11 @@ export default function App() {
     handleCloseModal();
   };
 
+  const handleHandoff = (e, taskId, newAssignee) => {
+    e.stopPropagation();
+    setTasks(tasks.map(t => t.id === taskId ? { ...t, assignee: newAssignee } : t));
+  };
+
   // TODO M11 anchors:
   //   const [anchors, setAnchors] = useLocalStorage('vibetracker.anchors', [...]);
 
@@ -286,6 +299,24 @@ export default function App() {
         </button>
       </header>
 
+      {/* Team Workload Strip */}
+      <div className="mb-6 flex gap-4 overflow-x-auto pb-2">
+        {TEAM.map(member => {
+          const activeTasks = tasks.filter(t => t.assignee === member && (t.status === 'todo' || t.status === 'in-progress' || t.status === 'review'));
+          return (
+            <div key={member} className="flex items-center gap-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm min-w-[200px]">
+              <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shrink-0">
+                {getInitials(member)}
+              </div>
+              <div className="flex flex-col">
+                <span className="font-semibold text-sm text-slate-800">{member}</span>
+                <span className="text-xs text-slate-500">{activeTasks.length} active task{activeTasks.length !== 1 && 's'}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       {/* TODO M11 anchors: render the Anchor Board (Presentation / Demo / Report / Documentation) above the board. */}
 
       {/*
@@ -304,9 +335,8 @@ export default function App() {
                   <div
                     key={task.id}
                     onClick={() => handleOpenModal(task)}
-                    className={`bg-white p-3 rounded shadow-sm border border-slate-200 border-l-4 ${
-                      isFeature ? 'border-l-feature bg-emerald-50/10' : 'border-l-bug bg-red-50/10'
-                    } flex flex-col gap-2 cursor-pointer hover:shadow-md transition-shadow relative group`}
+                    className={`bg-white p-3 rounded shadow-sm border border-slate-200 border-l-4 ${isFeature ? 'border-l-feature bg-emerald-50/10' : 'border-l-bug bg-red-50/10'
+                      } flex flex-col gap-2 cursor-pointer hover:shadow-md transition-shadow relative group`}
                   >
                     <div className="flex justify-between items-start gap-2">
                       <span className="font-medium text-slate-800 leading-tight">{task.title}</span>
@@ -317,16 +347,28 @@ export default function App() {
                     {task.description && (
                       <p className="text-xs text-slate-500 line-clamp-2">{task.description}</p>
                     )}
-                    <div className="flex justify-between items-center mt-1">
-                      <span className="text-xs bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-600">
-                        {task.assignee}
-                      </span>
+                    <div className="flex justify-between items-end mt-1 gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-[10px] font-bold shrink-0" title={task.assignee}>
+                          {getInitials(task.assignee)}
+                        </div>
+                        <select
+                          value={task.assignee}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => handleHandoff(e, task.id, e.target.value)}
+                          className="text-xs border-0 bg-transparent text-slate-600 focus:ring-0 p-0 cursor-pointer outline-none font-medium hover:text-slate-800 truncate"
+                          title="Hand off to..."
+                        >
+                          {TEAM.map(member => (
+                            <option key={member} value={member}>{member}</option>
+                          ))}
+                        </select>
+                      </div>
                       <span
-                        className={`text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded border ${
-                          isFeature
+                        className={`text-[10px] uppercase tracking-wider font-extrabold px-2 py-0.5 rounded border ${isFeature
                             ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
                             : 'bg-red-50 border-red-200 text-red-700'
-                        }`}
+                          }`}
                       >
                         {task.type}
                       </span>
